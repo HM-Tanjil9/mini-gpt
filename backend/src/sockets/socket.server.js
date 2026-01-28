@@ -23,7 +23,10 @@ function initSocketServer(httpServer) {
     io.on("connection", (socket) => {
         console.log("A user connected:", socket.user);
         console.log("New socket connection:", socket.id);
-
+        socket.on('ai-message', (messagePayload) => {
+            console.log("message payload:", messagePayload);
+            // Handle AI message here
+        });
 
         socket.on("disconnect", () => {
             console.log("User disconnected:", socket.id);
