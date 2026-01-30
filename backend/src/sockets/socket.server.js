@@ -40,7 +40,9 @@ function initSocketServer(httpServer) {
             console.log("chat history", chatHistory.map(item => {
                 return {
                     role: item.role,
-                    parts: [{text: item.content}]
+                    parts: [{text: item.content
+                        
+                    }]
                 }
             }));
             
