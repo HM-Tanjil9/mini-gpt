@@ -38,8 +38,12 @@ function initSocketServer(httpServer) {
             const memory = await queryMemory({
                 queryVector: messageVectors,
                 limit: 3,
-                metadata: {}
+                metadata: {
+                    user: socket.user._id
+                }
             });
+
+            console.log("memory query results:", memory);
 
             await createMemory({
                 vectors: messageVectors,
@@ -50,22 +54,32 @@ function initSocketServer(httpServer) {
                     text: messagePayload.content
                 }
             });
-
-            
-            
-            console.log("memory", memory);
-            
             
             const chatHistory = (await messageModel.find({
                 chat: messagePayload.chat
             }).sort({ createdAt: -1 }).limit(20).lean()).reverse();
 
-            const response = await generateResponse(chatHistory.map(item => {
+            const stm = chatHistory.map(item => {
                 return {
                     role: item.role,
                     parts: [{text: item.content}]
                 }
-            }));
+            })
+            // console.log("stm:", stm);
+
+            const ltm = [
+                {
+                    role: 'system',
+                    parts: [{ text: `The following pieces of context are relevant to the conversation:\n${memory.map(m => m.metadata.text).join('\n')}`}]
+                }
+            ]
+            console.log("stm:");
+            console.dir({ stm }, { depth: null });
+            console.log("ltm:");
+            console.dir({ ltm }, { depth: null });
+            
+
+            const response = await generateResponse([...ltm, ...stm]);
             
             const responseMessage = await messageModel.create({
                 chat: messagePayload.chat,
